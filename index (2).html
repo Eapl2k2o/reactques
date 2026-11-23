@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚛️ React Quest — Interactive Study & Practice Hub</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Fira Code -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+    }
+    code, pre, textarea.code-editor {
+      font-family: 'Fira Code', monospace;
+    }
+    /* Custom Animations */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-float {
+      animation: floatSlow 3.5s ease-in-out infinite;
+    }
+    /* Print Styling so user can still export as a clean 6-page PDF */
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; }
+      .print-section { display: block !important; page-break-after: always; }
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Toast Notification Box (Replaces alert) -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Top Navigation & Gamified Header -->
+  <header class="sticky top-0 z-40 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white shadow-lg no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+      <!-- Brand -->
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner animate-float">
+          ⚛️
+        </div>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight flex items-center gap-2">
+            React Quest
+            <span class="text-xs font-bold uppercase tracking-wider bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">v18+</span>
+          </h1>
+          <p class="text-xs text-indigo-100 hidden sm:block">Interactive 6-Module Mastery & GitHub-Ready App</p>
+        </div>
+      </div>
+
+      <!-- XP & Progress Stats -->
+      <div class="flex items-center gap-3 sm:gap-5">
+        <div class="bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-2xl border border-white/20 flex items-center gap-2.5">
+          <span class="text-amber-300 text-lg"><i class="fa-solid fa-bolt"></i></span>
+          <div>
+            <div class="text-[10px] uppercase tracking-wider text-indigo-100 font-semibold">XP Earned</div>
+            <div class="text-sm font-extrabold" id="xp-display">0 XP</div>
+          </div>
+        </div>
+
+        <div class="bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-2xl border border-white/20 flex items-center gap-2.5">
+          <span class="text-emerald-300 text-lg"><i class="fa-solid fa-trophy"></i></span>
+          <div>
+            <div class="text-[10px] uppercase tracking-wider text-indigo-100 font-semibold">Rank</div>
+            <div class="text-sm font-extrabold" id="rank-display">JSX Rookie</div>
+          </div>
+        </div>
+
+        <!-- Download / Print Action -->
+        <button onclick="downloadSelf()" title="Download HTML file for GitHub" class="bg-white text-indigo-700 hover:bg-indigo-50 font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-2xl shadow-md transition active:scale-95 flex items-center gap-2">
+          <i class="fa-solid fa-download"></i>
+          <span class="hidden md:inline">Save HTML</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Interactive Tab Navigation -->
+    <nav class="bg-black/15 backdrop-blur-sm border-t border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex overflow-x-auto no-scrollbar py-2 gap-2">
+        <button onclick="switchTab('roadmap')" id="tab-roadmap" class="nav-btn active-tab px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition flex items-center gap-2 bg-white text-indigo-700 shadow">
+          <i class="fa-solid fa-map-location-dot"></i> 1. Roadmap & Cheatsheet
+        </button>
+        <button onclick="switchTab('mcq')" id="tab-mcq" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition flex items-center gap-2 text-white/90 hover:bg-white/15">
+          <i class="fa-solid fa-circle-question"></i> 2. MCQ Arena (10)
+        </button>
+        <button onclick="switchTab('puzzles')" id="tab-puzzles" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition flex items-center gap-2 text-white/90 hover:bg-white/15">
+          <i class="fa-solid fa-puzzle-piece"></i> 3. Fill-Ups & Match
+        </button>
+        <button onclick="switchTab('labs')" id="tab-labs" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition flex items-center gap-2 text-white/90 hover:bg-white/15">
+          <i class="fa-solid fa-code"></i> 4. Practical Code Labs (5)
+        </button>
+        <button onclick="switchTab('interview')" id="tab-interview" class="nav-btn px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition flex items-center gap-2 text-white/90 hover:bg-white/15">
+          <i class="fa-solid fa-user-tie"></i> 5. Interview Flashcards
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ========================================================= -->
+    <!-- TAB 1: INTERACTIVE ROADMAP & COLORFUL CHEATSHEET          -->
+    <!-- ========================================================= -->
+    <section id="view-roadmap" class="tab-view space-y-8">
+      <!-- Hero Progress Banner -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80 flex flex-col lg:flex-row items-center justify-between gap-6">
+        <div class="space-y-2 max-w-2xl">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
+            <i class="fa-solid fa-sparkles"></i> Interactive Study Tracker
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Your 6-Module React Mastery Checklist</h2>
+          <p class="text-slate-600 text-sm sm:text-base">
+            Check off topics as you master them to earn <strong>+10 XP</strong> per skill, or study the quick-reference code cards below! Your progress saves automatically in your browser.
+          </p>
+        </div>
+        <div class="w-full lg:w-72 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+          <div class="flex justify-between text-sm font-bold mb-2">
+            <span class="text-slate-700">Syllabus Completion</span>
+            <span class="text-indigo-600" id="checklist-percent">0%</span>
+          </div>
+          <div class="w-full bg-slate-200 rounded-full h-3.5 overflow-hidden">
+            <div id="checklist-bar" class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-3.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <p class="text-xs text-slate-500 mt-2 text-center" id="checklist-count">0 of 35 topics completed</p>
+        </div>
+      </div>
+
+      <!-- 6-Module Interactive Checklist Grid -->
+      <div id="modules-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Populated dynamically via JS -->
+      </div>
+
+      <!-- Visual Quick-Reference Cheatsheet -->
+      <div class="pt-4">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2.5">
+            <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg"><i class="fa-solid fa-bolt"></i></span>
+            Quick-Reference Code Cheatsheet
+          </h3>
+          <button onclick="window.print()" class="text-xs font-bold bg-slate-800 text-white px-4 py-2 rounded-xl hover:bg-slate-700 transition">
+            <i class="fa-solid fa-print mr-1"></i> Print / Save PDF
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Card 1: Vite & JSX -->
+          <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80">
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-xl text-xs font-extrabold bg-sky-100 text-sky-700">1. Vite Setup & JSX</span>
+              <button onclick="copySnippet('code-vite')" class="text-xs font-semibold text-slate-500 hover:text-indigo-600"><i class="fa-regular fa-copy"></i> Copy</button>
+            </div>
+            <pre id="code-vite" class="bg-slate-900 text-sky-300 p-4 rounded-2xl text-xs overflow-x-auto leading-relaxed"># 1. Scaffold Vite React App
+npm create vite@latest my-app -- --template react
+cd my-app && npm install && npm run dev
+
+// 2. JSX Rules: Single root (<>...</>), className, {}
+export function Welcome({ user }) {
+  return (
+    &lt;&gt;
+      &lt;h1 className="title"&gt;Hello, {user.toUpperCase()}!&lt;/h1&gt;
+      &lt;p&gt;2 + 2 = {2 + 2}&lt;/p&gt;
+    &lt;/&gt;
+  );
+}</pre>
+          </div>
+
+          <!-- Card 2: Essential Hooks -->
+          <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80">
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-xl text-xs font-extrabold bg-purple-100 text-purple-700">2. All 7 Essential Hooks</span>
+              <button onclick="copySnippet('code-hooks')" class="text-xs font-semibold text-slate-500 hover:text-indigo-600"><i class="fa-regular fa-copy"></i> Copy</button>
+            </div>
+            <pre id="code-hooks" class="bg-slate-900 text-purple-300 p-4 rounded-2xl text-xs overflow-x-auto leading-relaxed">const [count, setCount] = useState(0);          // Reactive state
+useEffect(() => { /* side effect */ }, [count]);  // Lifecycle sync
+const theme = useContext(ThemeContext);           // Global context
+const inputRef = useRef(null);                    // DOM / mutable ref
+const total = useMemo(() => heavy(a), [a]);       // Cached value
+const fn = useCallback(() => submit(), []);       // Cached function
+const [state, dispatch] = useReducer(reducer, 0); // Complex state</pre>
+          </div>
+
+          <!-- Card 3: Lists, Events & Controlled Forms -->
+          <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80">
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-xl text-xs font-extrabold bg-emerald-100 text-emerald-700">3. Lists, Filter & Forms</span>
+              <button onclick="copySnippet('code-lists')" class="text-xs font-semibold text-slate-500 hover:text-indigo-600"><i class="fa-regular fa-copy"></i> Copy</button>
+            </div>
+            <pre id="code-lists" class="bg-slate-900 text-emerald-300 p-4 rounded-2xl text-xs overflow-x-auto leading-relaxed">// Filter + Map with unique key
+{items
+  .filter(item => item.active)
+  .map(item => &lt;li key={item.id}&gt;{item.name}&lt;/li&gt;)}
+
+// Controlled Input + Submit
+&lt;form onSubmit={(e) => { e.preventDefault(); save(); }}&gt;
+  &lt;input value={text} onChange={e => setText(e.target.value)} /&gt;
+&lt;/form&gt;</pre>
+          </div>
+
+          <!-- Card 4: Styling & React Router -->
+          <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80">
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-xl text-xs font-extrabold bg-rose-100 text-rose-700">4. Styling & React Router</span>
+              <button onclick="copySnippet('code-router')" class="text-xs font-semibold text-slate-500 hover:text-indigo-600"><i class="fa-regular fa-copy"></i> Copy</button>
+            </div>
+            <pre id="code-router" class="bg-slate-900 text-rose-300 p-4 rounded-2xl text-xs overflow-x-auto leading-relaxed">// Conditional Class & Inline Style
+&lt;button className={`btn ${active ? 'bg-blue-500' : ''}`}
+        style={{ borderRadius: '12px' }}&gt;Click&lt;/button&gt;
+
+// React Router v6+
+&lt;BrowserRouter&gt;
+  &lt;nav&gt;&lt;Link to="/"&gt;Home&lt;/Link&gt; | &lt;Link to="/about"&gt;About&lt;/Link&gt;&lt;/nav&gt;
+  &lt;Routes&gt;
+    &lt;Route path="/" element={&lt;Home /&gt;} /&gt;
+    &lt;Route path="/about" element={&lt;About /&gt;} /&gt;
+  &lt;/Routes&gt;
+&lt;/BrowserRouter&gt;</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- TAB 2: INTERACTIVE MCQ ARENA                              -->
+    <!-- ========================================================= -->
+    <section id="view-mcq" class="tab-view hidden space-y-6">
+      <div class="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold">🎯 MCQ Battle Arena</h2>
+          <p class="text-indigo-100 text-sm sm:text-base mt-1">Test your React instincts! Instant feedback + explanations + <strong>+25 XP</strong> per right answer.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="bg-white/20 px-4 py-2 rounded-2xl font-extrabold text-lg" id="mcq-score-badge">Score: 0 / 10</div>
+          <button onclick="resetMCQs()" class="bg-white text-indigo-700 hover:bg-indigo-50 px-4 py-2 rounded-2xl font-bold text-sm shadow transition">
+            <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <div id="mcq-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- TAB 3: FILL-IN-THE-BLANKS & MATCH THE FOLLOWING           -->
+    <!-- ========================================================= -->
+    <section id="view-puzzles" class="tab-view hidden space-y-8">
+      <!-- Fill in the Blanks -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800">Part A • Syntax Recall</span>
+            <h2 class="text-2xl font-extrabold text-slate-900 mt-1">✍️ Fill in the React Blanks</h2>
+          </div>
+          <button onclick="checkFillBlanks()" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-6 py-3 rounded-2xl shadow-md transition active:scale-95">
+            <i class="fa-solid fa-check-double mr-2"></i> Check Answers
+          </button>
+        </div>
+
+        <div id="fill-blanks-list" class="space-y-4">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Match the Following -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800">Part B • Concept Pairing</span>
+            <h2 class="text-2xl font-extrabold text-slate-900 mt-1">🔗 Match the Following</h2>
+          </div>
+          <button onclick="checkMatches()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold px-6 py-3 rounded-2xl shadow-md transition active:scale-95">
+            <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Verify Matches
+          </button>
+        </div>
+
+        <div id="match-list" class="grid grid-cols-1 gap-4">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- TAB 4: PRACTICAL CODE LABS (5 HANDS-ON EXERCISES)         -->
+    <!-- ========================================================= -->
+    <section id="view-labs" class="tab-view hidden space-y-6">
+      <div class="bg-gradient-to-r from-pink-600 via-rose-600 to-orange-500 rounded-3xl p-6 sm:p-8 text-white shadow-md">
+        <h2 class="text-2xl sm:text-3xl font-extrabold">💻 Hands-On Practical Code Labs</h2>
+        <p class="text-rose-100 text-sm sm:text-base mt-1">
+          Write your JSX solution in the interactive editor, test your logic, or reveal the model solution when ready!
+        </p>
+      </div>
+
+      <div id="labs-container" class="space-y-6">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- TAB 5: INTERVIEW FLASHCARDS                               -->
+    <!-- ========================================================= -->
+    <section id="view-interview" class="tab-view hidden space-y-6">
+      <div class="bg-gradient-to-r from-cyan-600 to-blue-600 rounded-3xl p-6 sm:p-8 text-white shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold">🎤 Top React Interview Flashcards</h2>
+          <p class="text-cyan-100 text-sm sm:text-base mt-1">Click any card to reveal the senior-level answer and earn <strong>+15 XP</strong>!</p>
+        </div>
+        <button onclick="revealAllCards()" class="bg-white text-blue-700 hover:bg-blue-50 font-bold px-4 py-2.5 rounded-2xl text-sm shadow transition">
+          <i class="fa-solid fa-eye mr-1"></i> Reveal All Answers
+        </button>
+      </div>
+
+      <div id="interview-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer with GitHub Hosting Instructions -->
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-8 border-t border-slate-200 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500 no-print">
+    <div>
+      <strong class="text-slate-700">⚛️ React Quest</strong> — Built as a single-file interactive study app.
+    </div>
+    <div class="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-2xl text-xs font-medium text-slate-600">
+      <i class="fa-brands fa-github text-base text-slate-800"></i>
+      <span>Tip: Click <strong>Save HTML</strong> above, upload as <code class="text-indigo-600 font-bold">index.html</code> to GitHub, and enable <strong>GitHub Pages</strong>!</span>
+    </div>
+  </footer>
+
+  <!-- ========================================================= -->
+  <!-- APPLICATION LOGIC & CURRICULUM DATA                       -->
+  <!-- ========================================================= -->
+  <script>
+    // --- 1. CURRICULUM DATA ---
+    const MODULES_DATA = [
+      {
+        id: 'm1',
+        title: '1. React Basics',
+        color: 'sky',
+        icon: 'fa-atom',
+        topics: [
+          'Install Node.js and npm',
+          'Create a React project using Vite',
+          'Understand React project structure',
+          'Learn JSX syntax',
+          'Use JavaScript expressions in JSX',
+          'Understand className and fragments'
+        ]
+      },
+      {
+        id: 'm2',
+        title: '2. Components & Props',
+        color: 'purple',
+        icon: 'fa-cubes',
+        topics: [
+          'Create function components',
+          'Import and export components',
+          'Understand parent and child components',
+          'Pass data using props',
+          'Pass multiple props',
+          'Pass functions as props'
+        ]
+      },
+      {
+        id: 'm3',
+        title: '3. React Hooks',
+        color: 'indigo',
+        icon: 'fa-link',
+        topics: [
+          'Learn useState',
+          'Update state using a setter function',
+          'Learn useEffect',
+          'Understand useContext',
+          'Learn useRef',
+          'Understand useMemo and useCallback',
+          'Learn useReducer'
+        ]
+      },
+      {
+        id: 'm4',
+        title: '4. Events & Conditional Rendering',
+        color: 'amber',
+        icon: 'fa-bolt',
+        topics: [
+          'Handle button clicks using onClick',
+          'Handle input changes using onChange',
+          'Handle form submission using onSubmit',
+          'Use if/else conditions',
+          'Use ternary operator (? :)',
+          'Use logical AND (&&)'
+        ]
+      },
+      {
+        id: 'm5',
+        title: '5. Lists & Forms',
+        color: 'emerald',
+        icon: 'fa-list-check',
+        topics: [
+          'Render arrays using map()',
+          'Use unique keys in lists',
+          'Filter data using filter()',
+          'Create controlled inputs',
+          'Handle form data',
+          'Perform basic form validation'
+        ]
+      },
+      {
+        id: 'm6',
+        title: '6. Styling & Navigation',
+        color: 'rose',
+        icon: 'fa-compass',
+        topics: [
+          'Use CSS files',
+          'Use inline styles',
+          'Apply conditional CSS classes',
+          'Create reusable UI components',
+          'Install React Router',
+          'Navigate using Link',
+          'Configure Routes and Route'
+        ]
+      }
+    ];
+
+    const MCQ_DATA = [
+      {
+        q: 'Which command initializes a new React project using Vite?',
+        options: [
+          'npx create-react-vite my-app',
+          'npm create vite@latest my-app -- --template react',
+          'npm init react-app my-app',
+          'vite install react my-app'
+        ],
+        answer: 1,
+        explanation: 'Vite uses `npm create vite@latest <name> -- --template react` to scaffold a fast React project.'
+      },
+      {
+        q: 'Why do we use React Fragments (<>...</>)?',
+        options: [
+          'To improve CSS grid rendering speed',
+          'To group multiple elements without adding extra nodes to the DOM',
+          'To create global state variables',
+          'To automatically bind event listeners'
+        ],
+        answer: 1,
+        explanation: 'Fragments let you return multiple sibling elements from a component without polluting the HTML DOM with extra <div> wrappers.'
+      },
+      {
+        q: 'How do you pass a function named deleteItem from a Parent to a Child component?',
+        options: [
+          '<Child deleteItem={deleteItem()} />',
+          '<Child deleteItem="deleteItem" />',
+          '<Child onDelete={deleteItem} />',
+          '<Child props.deleteItem={deleteItem} />'
+        ],
+        answer: 2,
+        explanation: 'Pass the function reference without parentheses (`onDelete={deleteItem}`). Adding `()` would call it immediately during render!'
+      },
+      {
+        q: 'What happens if you omit the dependency array [] in useEffect(() => { ... })?',
+        options: [
+          'The effect runs only once on initial mount',
+          'The effect never runs',
+          'The effect runs after every single render',
+          'React throws a compilation error'
+        ],
+        answer: 2,
+        explanation: 'Without a dependency array, React runs the effect after every render cycle.'
+      },
+      {
+        q: 'Which hook lets you focus an <input> element directly without triggering a re-render?',
+        options: ['useState', 'useMemo', 'useRef', 'useContext'],
+        answer: 2,
+        explanation: '`useRef` returns a mutable `.current` object that can hold a direct DOM reference without causing re-renders.'
+      },
+      {
+        q: 'What is the primary difference between useMemo and useCallback?',
+        options: [
+          'useMemo caches a computed value; useCallback caches a function instance',
+          'useMemo runs asynchronously; useCallback runs synchronously',
+          'useMemo replaces useState; useCallback replaces useEffect',
+          'They are identical aliases'
+        ],
+        answer: 0,
+        explanation: '`useMemo` memoizes the result of a calculation, while `useCallback` memoizes the function definition itself.'
+      },
+      {
+        q: 'In JSX, what will {0 && <p>Hello</p>} render on the screen?',
+        options: ['Nothing (blank)', '<p>Hello</p>', '0', 'false'],
+        answer: 2,
+        explanation: 'Because `0` is falsy in JavaScript, the `&&` operator short-circuits and evaluates to `0`, which React renders as text!'
+      },
+      {
+        q: 'Why is using array index as a key in .map() discouraged when items can be deleted or reordered?',
+        options: [
+          'It causes a Vite syntax error',
+          'It breaks component state and causes incorrect UI updates during list mutations',
+          'key only accepts string UUIDs',
+          'It prevents .filter() from working'
+        ],
+        answer: 1,
+        explanation: 'Indices shift when items are removed or sorted, confusing React’s reconciliation algorithm.'
+      },
+      {
+        q: 'What makes an <input> a "controlled component" in React?',
+        options: [
+          'It uses the required HTML attribute',
+          'Its value is driven by React state and updated via onChange',
+          'It is wrapped inside a <form> tag',
+          'It uses document.getElementById()'
+        ],
+        answer: 1,
+        explanation: 'A controlled input has `value={state}` and `onChange={e => setState(e.target.value)}`, making React the single source of truth.'
+      },
+      {
+        q: 'Which React Router component navigates between pages without a full browser reload?',
+        options: ['<a href="/home">', '<Route to="/home">', '<Link to="/home">', '<Navigate href="/home">'],
+        answer: 2,
+        explanation: '`<Link to="...">` updates the URL via the History API without reloading the page or losing state.'
+      }
+    ];
+
+    const FILL_BLANKS_DATA = [
+      { id: 'fb1', before: 'Before creating a Vite React project, you must have', after: 'and npm installed.', answer: 'node.js', alt: ['node', 'nodejs'] },
+      { id: 'fb2', before: 'In JSX, HTML’s class attribute is written as', after: 'because class is reserved in JS.', answer: 'classname', alt: [] },
+      { id: 'fb3', before: 'To update state safely from its previous value, pass a callback:', after: '=> prev + 1', answer: 'prev', alt: ['c', 'count', 'state'] },
+      { id: 'fb4', before: 'To prevent page reload on form submission, call', after: 'inside onSubmit.', answer: 'e.preventdefault()', alt: ['event.preventdefault()'] },
+      { id: 'fb5', before: 'In React Router v6+, <Route> components must be wrapped inside a', after: 'component.', answer: '<routes>', alt: ['routes'] }
+    ];
+
+    const MATCH_DATA = [
+      { id: 'm_1', left: 'package.json', right: 'Lists project dependencies, scripts (dev, build), and metadata.' },
+      { id: 'm_2', left: 'useContext', right: 'Shares data across deeply nested components without prop drilling.' },
+      { id: 'm_3', left: 'useCallback', right: 'Prevents unnecessary re-creation of callback functions across renders.' },
+      { id: 'm_4', left: 'e.target.value', right: 'Extracts the current text entered inside an onChange input event.' },
+      { id: 'm_5', left: '.filter()', right: 'Creates a subset of an array based on a boolean condition before mapping.' },
+      { id: 'm_6', left: 'key prop', right: 'Helps React identify which list items have changed, been added, or removed.' }
+    ];
+
+    const LABS_DATA = [
+      {
+        id: 'lab1',
+        badge: 'Components & Conditional Styling',
+        title: 'Lab 1: StatusBadge & UserCard',
+        prompt: 'Build a reusable StatusBadge({ isOnline }) component that displays "Online" (green) when true, and "Offline" (gray) when false. Render it inside UserCard({ name, isOnline }).',
+        starter: `function StatusBadge({ isOnline }) {\n  // Return a <span> with conditional color & text\n  return <span>Status</span>;\n}\n\nfunction UserCard({ name, isOnline }) {\n  return (\n    <div>\n      <h3>{name}</h3>\n      {/* Render StatusBadge here */}\n    </div>\n  );\n}`,
+        solution: `function StatusBadge({ isOnline }) {\n  const style = {\n    backgroundColor: isOnline ? '#22c55e' : '#9ca3af',\n    color: 'white',\n    padding: '4px 10px',\n    borderRadius: '12px'\n  };\n  return <span style={style}>{isOnline ? 'Online' : 'Offline'}</span>;\n}\n\nfunction UserCard({ name, isOnline }) {\n  return (\n    <div className="user-card">\n      <h3>{name}</h3>\n      <StatusBadge isOnline={isOnline} />\n    </div>\n  );\n}`
+      },
+      {
+        id: 'lab2',
+        badge: 'useState, filter() & map()',
+        title: 'Lab 2: Live Task Search Filter',
+        prompt: 'Given initialTasks, bind a controlled <input> to search state, filter tasks case-insensitively, and render them with .map() and unique keys.',
+        starter: `import { useState } from 'react';\n\nexport function TaskSearch() {\n  const initialTasks = ["Setup Vite", "Learn Hooks", "Build Router"];\n  // Add useState for query, filter tasks, and render <ul>\n}`,
+        solution: `import { useState } from 'react';\n\nexport function TaskSearch() {\n  const initialTasks = ["Setup Vite", "Learn Hooks", "Build Router"];\n  const [query, setQuery] = useState("");\n\n  const filtered = initialTasks.filter(t =>\n    t.toLowerCase().includes(query.toLowerCase())\n  );\n\n  return (\n    <div>\n      <input value={query} onChange={e => setQuery(e.target.value)} />\n      <ul>\n        {filtered.map(task => <li key={task}>{task}</li>)}\n      </ul>\n    </div>\n  );\n}`
+      },
+      {
+        id: 'lab3',
+        badge: 'useRef & useEffect',
+        title: 'Lab 3: Auto-Focus Input & Document Title Sync',
+        prompt: 'Use useRef + useEffect to auto-focus an <input> on initial mount, and a second useEffect to update document.title whenever count changes.',
+        starter: `import { useState, useRef, useEffect } from 'react';\n\nexport function FocusTracker() {\n  const [count, setCount] = useState(0);\n  // Create inputRef and two useEffects\n}`,
+        solution: `import { useState, useRef, useEffect } from 'react';\n\nexport function FocusTracker() {\n  const [count, setCount] = useState(0);\n  const inputRef = useRef(null);\n\n  useEffect(() => {\n    inputRef.current?.focus();\n  }, []);\n\n  useEffect(() => {\n    document.title = \`Clicks: \${count}\`;\n  }, [count]);\n\n  return (\n    <div>\n      <input ref={inputRef} placeholder="Auto-focused" />\n      <button onClick={() => setCount(c => c + 1)}>Count: {count}</button>\n    </div>\n  );\n}`
+      },
+      {
+        id: 'lab4',
+        badge: 'Controlled Forms & Validation',
+        title: 'Lab 4: Signup Form Validation',
+        prompt: 'Prevent default submit, verify email contains "@" and password length >= 6, and show an error or "Account created!" message.',
+        starter: `import { useState } from 'react';\n\nexport function SignupForm() {\n  const [email, setEmail] = useState("");\n  const [password, setPassword] = useState("");\n  // Add handleSubmit validation\n}`,
+        solution: `import { useState } from 'react';\n\nexport function SignupForm() {\n  const [email, setEmail] = useState("");\n  const [password, setPassword] = useState("");\n  const [msg, setMsg] = useState("");\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    if (!email.includes("@")) return setMsg("Invalid email");\n    if (password.length < 6) return setMsg("Password too short");\n    setMsg("Account created!");\n  };\n\n  return (\n    <form onSubmit={handleSubmit}>\n      <input value={email} onChange={e => setEmail(e.target.value)} />\n      <input type="password" value={password} onChange={e => setPassword(e.target.value)} />\n      <button type="submit">Sign Up</button>\n      {msg && <p>{msg}</p>}\n    </form>\n  );\n}`
+      },
+      {
+        id: 'lab5',
+        badge: 'React Router v6+',
+        title: 'Lab 5: Multi-Page App Navigation',
+        prompt: 'Configure BrowserRouter, Link navigation, and Routes for "/", "/products", and a catch-all "*" NotFound route.',
+        starter: `import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';\n\nexport function AppRouter() {\n  // Configure navigation links and Routes\n}`,
+        solution: `import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';\n\nexport function AppRouter() {\n  return (\n    <BrowserRouter>\n      <nav>\n        <Link to="/">Home</Link> | <Link to="/products">Products</Link>\n      </nav>\n      <Routes>\n        <Route path="/" element={<Home />} />\n        <Route path="/products" element={<Products />} />\n        <Route path="*" element={<NotFound />} />\n      </Routes>\n    </BrowserRouter>\n  );\n}`
+      }
+    ];
+
+    const INTERVIEW_DATA = [
+      {
+        q: 'Why can’t browsers read JSX directly, and how does Vite handle it?',
+        a: 'Browsers only execute standard JavaScript, not HTML-like JSX syntax. Vite uses esbuild during development and Rollup/esbuild at build time to transpile JSX into standard React.createElement() / _jsx() calls.'
+      },
+      {
+        q: 'What is "Prop Drilling" and how does useContext solve it?',
+        a: 'Prop drilling happens when data is passed through multiple intermediate components that do not need it just to reach a deeply nested child. useContext lets a parent broadcast data via Context.Provider so any descendant can consume it directly.'
+      },
+      {
+        q: 'When should you choose useReducer over useState?',
+        a: 'Choose useReducer when state logic involves multiple interconnected sub-values, complex state transitions, or when the next state depends heavily on action types (like a shopping cart with ADD, REMOVE, and CLEAR actions).'
+      },
+      {
+        q: 'What is the difference between <Link> and <a> in React Router?',
+        a: 'An <a> tag triggers a full HTTP request and browser page reload, wiping out all in-memory React state. React Router’s <Link> intercepts the click, updates the URL via the HTML5 History API, and swaps views instantaneously.'
+      },
+      {
+        q: 'Why must state updates in React be treated as immutable?',
+        a: 'React uses shallow reference comparison (Object.is) to detect state changes. Mutating an array or object in place preserves its memory reference, causing React to bail out and skip re-rendering the UI.'
+      },
+      {
+        q: 'What is the difference between Controlled and Uncontrolled components?',
+        a: 'A Controlled component has its form value managed by React state via value and onChange. An Uncontrolled component stores its own state internally in the DOM and is queried using useRef when needed.'
+      }
+    ];
+
+    // --- 2. STATE & PERSISTENCE ---
+    let appState = JSON.parse(localStorage.getItem('reactQuestState')) || {
+      xp: 0,
+      checkedTopics: {},
+      mcqAnswered: {},
+      revealedCards: {}
+    };
+
+    function saveState() {
+      localStorage.setItem('reactQuestState', JSON.stringify(appState));
+      updateHeaderStats();
+    }
+
+    function addXP(amount, reason) {
+      appState.xp += amount;
+      saveState();
+      showToast(`+${amount} XP — ${reason}`, 'success');
+    }
+
+    function updateHeaderStats() {
+      document.getElementById('xp-display').textContent = `${appState.xp} XP`;
+      let rank = 'JSX Rookie';
+      if (appState.xp >= 600) rank = 'React Architect 👑';
+      else if (appState.xp >= 350) rank = 'Hooks Master 🚀';
+      else if (appState.xp >= 150) rank = 'Component Pro ⚡';
+      document.getElementById('rank-display').textContent = rank;
+    }
+
+    // --- 3. UI HELPERS (Toast, Tabs, Copy, Download) ---
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const colors = {
+        success: 'bg-emerald-600 text-white',
+        error: 'bg-rose-600 text-white',
+        info: 'bg-slate-900 text-white'
+      };
+      toast.className = `${colors[type]} px-4 py-3 rounded-2xl shadow-xl text-sm font-bold flex items-center gap-2 transition-all transform translate-y-2 opacity-0`;
+      toast.innerHTML = `<i class="fa-solid fa-sparkles"></i> <span>${message}</span>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 2600);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-indigo-700', 'shadow');
+        btn.classList.add('text-white/90', 'hover:bg-white/15');
+      });
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      activeBtn.classList.remove('text-white/90', 'hover:bg-white/15');
+      activeBtn.classList.add('bg-white', 'text-indigo-700', 'shadow');
+    }
+
+    function copySnippet(elementId) {
+      const text = document.getElementById(elementId).innerText;
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      showToast('Code copied to clipboard!', 'info');
+    }
+
+    function downloadSelf() {
+      const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'index.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Downloaded index.html! Ready for GitHub Pages.', 'success');
+    }
+
+    // --- 4. RENDER MODULES CHECKLIST ---
+    function renderModules() {
+      const grid = document.getElementById('modules-grid');
+      const colorMap = {
+        sky: 'from-sky-500 to-blue-600 bg-sky-50 text-sky-700 border-sky-200',
+        purple: 'from-purple-500 to-indigo-600 bg-purple-50 text-purple-700 border-purple-200',
+        indigo: 'from-indigo-500 to-violet-600 bg-indigo-50 text-indigo-700 border-indigo-200',
+        amber: 'from-amber-500 to-orange-500 bg-amber-50 text-amber-700 border-amber-200',
+        emerald: 'from-emerald-500 to-teal-600 bg-emerald-50 text-emerald-700 border-emerald-200',
+        rose: 'from-rose-500 to-pink-600 bg-rose-50 text-rose-700 border-rose-200'
+      };
+
+      let totalTopics = 0;
+      let completedCount = 0;
+
+      grid.innerHTML = MODULES_DATA.map(mod => {
+        const theme = colorMap[mod.color].split(' ');
+        const grad = `${theme[0]} ${theme[1]}`;
+        const badgeBg = theme[2];
+        const badgeText = theme[3];
+
+        const itemsHtml = mod.topics.map((topic, idx) => {
+          totalTopics++;
+          const key = `${mod.id}_${idx}`;
+          const isChecked = !!appState.checkedTopics[key];
+          if (isChecked) completedCount++;
+
+          return `
+            <label class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 cursor-pointer transition select-none">
+              <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleTopic('${key}')"
+                class="mt-0.5 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer" />
+              <span class="text-sm ${isChecked ? 'line-through text-slate-400' : 'text-slate-700 font-medium'}">${topic}</span>
+            </label>
+          `;
+        }).join('');
+
+        return `
+          <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200/80 flex flex-col">
+            <div class="bg-gradient-to-r ${grad} p-4 text-white flex items-center justify-between">
+              <h3 class="font-extrabold text-base">${mod.title}</h3>
+              <span class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center"><i class="fa-solid ${mod.icon}"></i></span>
+            </div>
+            <div class="p-4 space-y-1 flex-1">
+              ${itemsHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const pct = Math.round((completedCount / totalTopics) * 100);
+      document.getElementById('checklist-percent').textContent = `${pct}%`;
+      document.getElementById('checklist-bar').style.width = `${pct}%`;
+      document.getElementById('checklist-count').textContent = `${completedCount} of ${totalTopics} topics completed`;
+    }
+
+    function toggleTopic(key) {
+      if (appState.checkedTopics[key]) {
+        delete appState.checkedTopics[key];
+        saveState();
+      } else {
+        appState.checkedTopics[key] = true;
+        addXP(10, 'Skill mastered!');
+      }
+      renderModules();
+    }
+
+    // --- 5. RENDER MCQs ---
+    function renderMCQs() {
+      const container = document.getElementById('mcq-container');
+      let correctTotal = 0;
+
+      container.innerHTML = MCQ_DATA.map((item, qIdx) => {
+        const chosen = appState.mcqAnswered[qIdx];
+        const isAnswered = chosen !== undefined;
+        if (isAnswered && chosen === item.answer) correctTotal++;
+
+        const optionsHtml = item.options.map((opt, oIdx) => {
+          let btnClass = 'border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 text-slate-700';
+          let icon = '';
+
+          if (isAnswered) {
+            if (oIdx === item.answer) {
+              btnClass = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-bold';
+              icon = '<i class="fa-solid fa-circle-check text-emerald-600"></i>';
+            } else if (oIdx === chosen) {
+              btnClass = 'border-rose-500 bg-rose-50 text-rose-900 font-bold';
+              icon = '<i class="fa-solid fa-circle-xmark text-rose-600"></i>';
+            } else {
+              btnClass = 'border-slate-100 opacity-50 text-slate-500';
+            }
+          }
+
+          return `
+            <button onclick="answerMCQ(${qIdx}, ${oIdx})" ${isAnswered ? 'disabled' : ''}
+              class="w-full text-left p-3.5 rounded-2xl border-2 text-sm transition flex items-center justify-between gap-2 ${btnClass}">
+              <span><strong class="mr-2">${String.fromCharCode(65 + oIdx)}.</strong>${opt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
+              ${icon}
+            </button>
+          `;
+        }).join('');
+
+        return `
+          <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80 flex flex-col justify-between space-y-4">
+            <div>
+              <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-600">Question ${qIdx + 1} of ${MCQ_DATA.length}</span>
+              <h3 class="text-base font-bold text-slate-900 mt-1">${item.q.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h3>
+              <div class="mt-4 space-y-2.5">${optionsHtml}</div>
+            </div>
+            ${isAnswered ? `
+              <div class="p-3.5 rounded-2xl text-xs leading-relaxed ${chosen === item.answer ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-amber-50 text-amber-900 border border-amber-200'}">
+                <strong>Explanation:</strong> ${item.explanation}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('mcq-score-badge').textContent = `Score: ${correctTotal} / ${MCQ_DATA.length}`;
+    }
+
+    function answerMCQ(qIdx, oIdx) {
+      if (appState.mcqAnswered[qIdx] !== undefined) return;
+      appState.mcqAnswered[qIdx] = oIdx;
+      if (oIdx === MCQ_DATA[qIdx].answer) {
+        addXP(25, 'Correct MCQ!');
+      } else {
+        saveState();
+        showToast('Not quite—check the explanation!', 'error');
+      }
+      renderMCQs();
+    }
+
+    function resetMCQs() {
+      appState.mcqAnswered = {};
+      saveState();
+      renderMCQs();
+      showToast('MCQ Arena reset!', 'info');
+    }
+
+    // --- 6. RENDER FILL-IN-THE-BLANKS & MATCH ---
+    function renderPuzzles() {
+      const fbContainer = document.getElementById('fill-blanks-list');
+      fbContainer.innerHTML = FILL_BLANKS_DATA.map((item, idx) => `
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center gap-2 text-sm sm:text-base">
+          <span class="font-extrabold text-indigo-600 mr-1">${idx + 1}.</span>
+          <span>${item.before.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
+          <input id="input-${item.id}" type="text" placeholder="type answer..."
+            class="px-3 py-1.5 rounded-xl border-2 border-indigo-200 focus:border-indigo-500 focus:outline-none font-mono text-sm font-bold text-indigo-900 bg-white w-44" />
+          <span>${item.after.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
+          <span id="status-${item.id}" class="ml-auto text-xs font-bold"></span>
+        </div>
+      `).join('');
+
+      const matchContainer = document.getElementById('match-list');
+      const shuffledRights = [...MATCH_DATA].sort(() => Math.random() - 0.5);
+
+      matchContainer.innerHTML = MATCH_DATA.map((item, idx) => `
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 font-extrabold text-xs flex items-center justify-center">${idx + 1}</span>
+            <code class="font-bold text-slate-900 bg-white px-3 py-1 rounded-xl border border-slate-200">${item.left}</code>
+          </div>
+          <div class="flex items-center gap-2 flex-1 sm:max-w-xl">
+            <select id="match-${item.id}" class="w-full p-2.5 rounded-xl border-2 border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-emerald-500 focus:outline-none">
+              <option value="">-- Select matching description --</option>
+              ${shuffledRights.map(r => `<option value="${r.id}">${r.right}</option>`).join('')}
+            </select>
+            <span id="mstatus-${item.id}" class="text-lg w-6 text-center"></span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function checkFillBlanks() {
+      let score = 0;
+      FILL_BLANKS_DATA.forEach(item => {
+        const inputEl = document.getElementById(`input-${item.id}`);
+        const statusEl = document.getElementById(`status-${item.id}`);
+        const val = inputEl.value.trim().toLowerCase();
+
+        if (val === item.answer || item.alt.includes(val)) {
+          score++;
+          inputEl.classList.remove('border-rose-400', 'border-indigo-200');
+          inputEl.classList.add('border-emerald-500', 'bg-emerald-50');
+          statusEl.innerHTML = '<span class="text-emerald-600"><i class="fa-solid fa-check"></i> Correct!</span>';
+        } else {
+          inputEl.classList.remove('border-emerald-500', 'border-indigo-200');
+          inputEl.classList.add('border-rose-400', 'bg-rose-50');
+          statusEl.innerHTML = `<span class="text-rose-600">Ans: ${item.answer}</span>`;
+        }
+      });
+      if (score === FILL_BLANKS_DATA.length) {
+        addXP(50, 'All Fill-in-the-Blanks solved!');
+      } else {
+        showToast(`You got ${score} / ${FILL_BLANKS_DATA.length} blanks right!`, 'info');
+      }
+    }
+
+    function checkMatches() {
+      let score = 0;
+      MATCH_DATA.forEach(item => {
+        const sel = document.getElementById(`match-${item.id}`);
+        const stat = document.getElementById(`mstatus-${item.id}`);
+        if (sel.value === item.id) {
+          score++;
+          sel.classList.add('border-emerald-500', 'bg-emerald-50');
+          sel.classList.remove('border-rose-400');
+          stat.innerHTML = '✅';
+        } else {
+          sel.classList.add('border-rose-400');
+          sel.classList.remove('border-emerald-500', 'bg-emerald-50');
+          stat.innerHTML = '❌';
+        }
+      });
+      if (score === MATCH_DATA.length) {
+        addXP(50, 'Perfect Match!');
+      } else {
+        showToast(`Matched ${score} / ${MATCH_DATA.length} pairs!`, 'info');
+      }
+    }
+
+    // --- 7. RENDER PRACTICAL CODE LABS ---
+    function renderLabs() {
+      const container = document.getElementById('labs-container');
+      container.innerHTML = LABS_DATA.map((lab, idx) => `
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-700">${lab.badge}</span>
+              <h3 class="text-xl font-extrabold text-slate-900 mt-1">${lab.title}</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="toggleLabSolution('${lab.id}')" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition">
+                <i class="fa-solid fa-lightbulb text-amber-400 mr-1.5"></i> Toggle Solution
+              </button>
+            </div>
+          </div>
+          <p class="text-sm text-slate-600">${lab.prompt}</p>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
+            <div>
+              <div class="text-xs font-bold text-slate-500 uppercase mb-1.5">Your Workspace (Editable)</div>
+              <textarea rows="10" class="code-editor w-full bg-slate-900 text-amber-200 p-4 rounded-2xl text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-rose-500">${lab.starter}</textarea>
+            </div>
+            <div id="sol-box-${lab.id}" class="hidden">
+              <div class="flex items-center justify-between text-xs font-bold text-emerald-700 uppercase mb-1.5">
+                <span>Reference Solution</span>
+                <button onclick="copySnippet('sol-code-${lab.id}')" class="hover:underline"><i class="fa-regular fa-copy"></i> Copy</button>
+              </div>
+              <pre id="sol-code-${lab.id}" class="bg-emerald-950 text-emerald-200 p-4 rounded-2xl text-xs overflow-x-auto leading-relaxed h-[232px]">${lab.solution.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleLabSolution(labId) {
+      const box = document.getElementById(`sol-box-${labId}`);
+      const wasHidden = box.classList.contains('hidden');
+      box.classList.toggle('hidden');
+      if (wasHidden) {
+        addXP(15, 'Studied reference code!');
+      }
+    }
+
+    // --- 8. RENDER INTERVIEW FLASHCARDS ---
+    function renderInterview() {
+      const grid = document.getElementById('interview-grid');
+      grid.innerHTML = INTERVIEW_DATA.map((item, idx) => {
+        const isRevealed = !!appState.revealedCards[idx];
+        return `
+          <div onclick="flipCard(${idx})" class="bg-white rounded-3xl p-6 shadow-sm border-2 ${isRevealed ? 'border-cyan-400' : 'border-slate-200/80 hover:border-cyan-300'} cursor-pointer transition flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-xl text-xs font-extrabold bg-cyan-100 text-cyan-800">Q${idx + 1}</span>
+                <span class="text-xs font-bold text-slate-400">${isRevealed ? '✅ Revealed' : '👆 Click to flip'}</span>
+              </div>
+              <h3 class="text-base sm:text-lg font-extrabold text-slate-900 mt-3">${item.q.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h3>
+            </div>
+            ${isRevealed ? `
+              <div class="p-4 rounded-2xl bg-cyan-50/80 border border-cyan-200 text-sm text-slate-700 leading-relaxed">
+                <strong class="text-cyan-900">Model Answer:</strong> ${item.a.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+              </div>
+            ` : `
+              <div class="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs font-semibold text-slate-400">
+                Think of your answer first, then tap to verify!
+              </div>
+            `}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function flipCard(idx) {
+      if (!appState.revealedCards[idx]) {
+        appState.revealedCards[idx] = true;
+        addXP(15, 'Interview question mastered!');
+        renderInterview();
+      }
+    }
+
+    function revealAllCards() {
+      INTERVIEW_DATA.forEach((_, idx) => { appState.revealedCards[idx] = true; });
+      saveState();
+      renderInterview();
+    }
+
+    // --- INITIALIZE APP ---
+    window.addEventListener('DOMContentLoaded', () => {
+      updateHeaderStats();
+      renderModules();
+      renderMCQs();
+      renderPuzzles();
+      renderLabs();
+      renderInterview();
+    });
+  </script>
+</body>
+</html>
